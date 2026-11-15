@@ -1,0 +1,39 @@
+# LLM / extraction configuration. Changing provider, model, prompts or schema here
+# requires NO Python changes — only a controlled restart.
+
+llm:
+  provider: ollama                       # ollama | openai_compatible | dotted.path.ToProviderClass
+  model: qwen2.5:3b
+  base_url: http://localhost:11434       # overridden by LLM_BASE_URL env (Docker: http://ollama:11434)
+  temperature: 0.2
+  max_context_length: 8192
+  max_output_tokens: 2048
+  timeout: 900                           # seconds per request. A 3B model on a 4-core CPU needs ~2-5 min per file;
+                                         # a timeout wastes the whole generation, so keep generous headroom.
+  options:                               # provider-specific options (passed through)
+    structured_output: true              # Ollama: send the JSON schema as `format`
+    keep_alive: 10m
+    num_gpu: 0                           # CPU-only default. Partial offload to weak iGPUs produced
+                                         # corrupt output on the reference laptop; remove on a real GPU.
+
+ai:
+  language: fa
+  response_format: json
+  max_transcript_chars: 12000            # transcripts are truncated (with a notice) above this
+  max_response_chars: 60000
+  extraction:
+    enabled: true
+    required: true                       # false = extraction failure does not make a file fail
+    schema: extraction_schema.json
+    system_prompt: prompts/system_prompt.txt
+    user_prompt: prompts/extraction_prompt.txt
+    repair_prompt: prompts/repair_prompt.txt
+    additional_context: ""
+    # Values meaning "nothing here". Small models write them instead of leaving a field empty; they are removed
+    # from every extracted string (list items dropped, nullable strings set to null).
+    placeholder_values: ["نامشخص", "نا مشخص", "ذکر نشده", "مشخص نیست", "ندارد", "هیچ", "بدون", "نامعلوم",
+                         "نام نیازمند", "unknown", "n/a", "na", "none", "null", "not specified", "not mentioned"]
+
+  retry:
+    max_attempts: 3                      # attempts to obtain schema-valid output per file
+    delay_seconds: 5

@@ -1,0 +1,22 @@
+{% autoescape off %}نتیجه پردازش فایل‌های صوتی
+شناسه کار: {{ job.id }}
+{% if outcome == "COMPLETED" %}وضعیت: همه فایل‌ها با موفقیت پردازش شدند.{% elif outcome == "PARTIALLY_COMPLETED" %}وضعیت: پردازش به‌صورت ناقص انجام شد.{% else %}وضعیت: پردازش ناموفق بود. {{ job_error }}{% endif %}
+
+تعداد کل فایل‌ها: {{ total }}
+موفق: {{ success_count }}
+ناموفق یا پشتیبانی‌نشده: {{ failed_count }}
+{% if zip_attached %}یک فایل ZIP ({{ zip_name }}) شامل PDF همه فایل‌ها به این ایمیل پیوست شده است.{% elif attached %}فایل‌های PDF به این ایمیل پیوست شده‌اند.{% endif %}
+{% if zip_link %}دریافت همه PDFها در یک فایل ZIP (معتبر تا {{ link_days }} روز): {{ zip_link }}{% endif %}
+{% for row in rows %}
+------------------------------------------------------------
+{{ forloop.counter }}. {{ row.file.original_name }} — {% if row.ok %}موفق{% else %}ناموفق: {{ row.error }}{% endif %}
+{% if row.link %}دریافت PDF (معتبر تا {{ link_days }} روز): {{ row.link }}
+{% endif %}{% for field in row.extraction %}
+{{ field.label }}:{% for item in field.items %}
+  - {{ item }}{% endfor %}
+{% endfor %}{% endfor %}
+------------------------------------------------------------
+مشاهده وضعیت کار: {{ status_link }}
+
+این پیام به‌صورت خودکار ارسال شده است.
+{% endautoescape %}

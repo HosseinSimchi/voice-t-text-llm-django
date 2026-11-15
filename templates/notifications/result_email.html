@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><title>نتیجه پردازش</title></head>
+<body style="margin:0;padding:24px;background:#f1f5f9;font-family:Tahoma,Vazirmatn,Arial,sans-serif;color:#0f172a;direction:rtl;text-align:right">
+  <div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:12px;padding:24px;border:1px solid #e2e8f0">
+    <h1 style="font-size:20px;margin:0 0 8px;color:#1e3a8a">نتیجه پردازش فایل‌های صوتی</h1>
+    <p style="margin:0 0 16px;color:#475569;font-size:13px">شناسه کار: <span dir="ltr">{{ job.id }}</span></p>
+    {% if outcome == "COMPLETED" %}
+      <p style="background:#dcfce7;color:#166534;padding:12px;border-radius:8px">همه فایل‌ها با موفقیت پردازش شدند.</p>
+    {% elif outcome == "PARTIALLY_COMPLETED" %}
+      <p style="background:#fef9c3;color:#854d0e;padding:12px;border-radius:8px">پردازش به‌صورت ناقص انجام شد. بخشی از فایل‌ها با موفقیت پردازش شدند.</p>
+    {% else %}
+      <p style="background:#fee2e2;color:#991b1b;padding:12px;border-radius:8px">پردازش ناموفق بود. {{ job_error }}</p>
+    {% endif %}
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin:12px 0">
+      <tr><td style="padding:4px 0">تعداد کل فایل‌ها</td><td>{{ total }}</td></tr>
+      <tr><td style="padding:4px 0">موفق</td><td>{{ success_count }}</td></tr>
+      <tr><td style="padding:4px 0">ناموفق یا پشتیبانی‌نشده</td><td>{{ failed_count }}</td></tr>
+    </table>
+    {% if zip_attached %}<p style="font-size:13px;color:#475569">یک فایل ZIP (<span dir="ltr">{{ zip_name }}</span>) شامل PDF همه فایل‌ها به این ایمیل پیوست شده است.</p>{% elif attached %}<p style="font-size:13px;color:#475569">فایل‌های PDF به این ایمیل پیوست شده‌اند.</p>{% endif %}
+    {% if zip_link %}<p style="margin:10px 0"><a href="{{ zip_link }}" style="background:#1d4ed8;color:#fff;padding:8px 14px;border-radius:8px;text-decoration:none">دریافت همه PDFها (ZIP)</a> <span style="color:#64748b;font-size:12px">(معتبر تا {{ link_days }} روز)</span></p>{% endif %}
+    {% for row in rows %}
+      <div style="border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px">
+        <h2 style="font-size:16px;margin:0 0 6px">{{ forloop.counter }}. {{ row.file.original_name }}
+          {% if row.ok %}<span style="color:#166534">✓</span>{% else %}<span style="color:#991b1b">✗</span>{% endif %}</h2>
+        {% if not row.ok %}<p style="color:#991b1b;font-size:13px;margin:0">{{ row.error }}</p>{% endif %}
+        {% if row.link %}<p style="margin:6px 0"><a href="{{ row.link }}" style="color:#1d4ed8">دریافت PDF</a> <span style="color:#64748b;font-size:12px">(معتبر تا {{ link_days }} روز)</span></p>{% endif %}
+        {% for field in row.extraction %}
+          <p style="margin:8px 0 2px;font-weight:bold;color:#1e3a8a;font-size:14px">{{ field.label }}</p>
+          <ul style="margin:0;padding-right:18px;font-size:14px;line-height:1.8">{% for item in field.items %}<li>{{ item }}</li>{% endfor %}</ul>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <p style="margin-top:20px"><a href="{{ status_link }}" style="color:#1d4ed8">مشاهده وضعیت کار</a></p>
+    <p style="font-size:12px;color:#94a3b8">این پیام به‌صورت خودکار ارسال شده است.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Optional NVIDIA GPU override. Requires the NVIDIA Container Toolkit on the host.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# Also set stt.device: cuda and stt.compute_type: float16 in config/ai/stt.yaml.
+# Note: the python:slim image has no CUDA/cuDNN libraries; faster-whisper on GPU needs
+# cuBLAS + cuDNN 9 (e.g. `pip install nvidia-cublas-cu12 nvidia-cudnn-cu12` in a derived image).
+services:
+  worker:
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: all, capabilities: [gpu]}]
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: all, capabilities: [gpu]}]

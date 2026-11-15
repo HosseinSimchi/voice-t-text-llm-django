@@ -1,0 +1,13 @@
+Extract structured information from the transcript of the audio file "{{ filename }}".
+Output language: {{ language_name }} ({{ language }}).
+
+Fields to extract (answer with ONE JSON object that has exactly these keys):
+{{ field_descriptions }}
+
+Additional context (trusted, from the operator): {{ additional_context }}
+
+<<<TRANSCRIPT_START>>>
+{{ transcript }}
+<<<TRANSCRIPT_END>>>
+
+Return only the JSON object. Use an empty list or null for anything the transcript does not state.

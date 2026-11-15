@@ -1,0 +1,60 @@
+# Application / pipeline configuration (non-AI).
+# Relative directories are resolved against MEDIA_ROOT (a persistent Docker volume).
+# Changes take effect after a controlled restart of web, worker and beat.
+
+uploads:
+  max_archive_bytes: 524288000          # 500 MB uploaded archive
+  max_extracted_bytes: 2147483648       # 2 GB total extracted audio (enforced while streaming)
+  max_file_bytes: 524288000             # 500 MB per extracted audio file
+  max_files: 100                        # audio entries per archive
+  max_entries: 500                      # all entries incl. unsupported ones
+  max_compression_ratio: 100            # per-entry declared ratio guard (decompression bombs)
+  max_audio_duration_seconds: 10800     # 3 hours per audio file
+  allowed_archive_extensions: [zip, rar]
+  allowed_audio_extensions: [mp3, wav, m4a, aac, ogg, flac, opus]
+  rar_tool: auto                        # auto | unrar | 7z | 7zz | bsdtar | unar
+
+storage:
+  archive:
+    backend: local
+    directory: archives
+    retention_seconds: 3600             # MINIMUM retention, not a deletion deadline
+  work:
+    directory: work                     # extracted + normalised audio (deleted when job is terminal)
+  results:
+    directory: results
+    retention_seconds: 604800           # generated PDFs kept 7 days
+  max_retention_seconds: 604800         # stuck non-terminal jobs are failed after this
+
+processing:
+  retry:
+    max_attempts: 3
+    initial_delay_seconds: 30
+    backoff_multiplier: 2
+    max_delay_seconds: 300
+  # Local LLM and SMTP can be down or still starting for minutes. Retrying only for 90 s (the default
+  # policy above) would permanently fail work whose inputs are safely stored, so they get longer
+  # windows: extraction 30+60+120+240+300*3 ~ 22 min, e-mail ~ 15 min. Both stay inside the 1 h
+  # minimum archive retention.
+  extraction_retry:
+    max_attempts: 8
+    initial_delay_seconds: 30
+    backoff_multiplier: 2
+    max_delay_seconds: 300
+  email_retry:
+    max_attempts: 6
+    initial_delay_seconds: 30
+    backoff_multiplier: 2
+    max_delay_seconds: 300
+  lease_seconds: 3600                   # per-task execution lease (prevents duplicate execution)
+  stale_after_seconds: 300              # recovery re-enqueues work idle for longer than this
+
+notifications:
+  email:
+    send_partial_results: true
+    send_failure_notice: true
+    attach_pdfs: true
+    attach_format: zip                    # zip = one ZIP with all PDFs | pdf = each PDF attached separately
+    max_attachment_total_bytes: 15728640  # 15 MB; larger result sets use signed links
+    download_link_ttl_seconds: 604800
+    include_extracted_information: true

@@ -1,0 +1,41 @@
+{% extends "base.html" %}{% load static %}
+{% block title %}وضعیت پردازش{% endblock %}
+{% block content %}
+<section id="job" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+         data-status-url="{{ status_url }}" data-results-url="{{ results_url }}">
+  <div class="mb-4 rounded-lg bg-blue-50 p-3 text-sm text-blue-900">
+    فایل شما با موفقیت بارگذاری شد و در صف پردازش قرار گرفت. بارگذاری موفق به معنی پایان پردازش نیست.
+  </div>
+  <h1 class="mb-1 text-xl font-bold">وضعیت پردازش</h1>
+  <p class="mb-6 text-xs text-slate-500">شناسه کار: <span dir="ltr" class="font-mono">{{ job.id }}</span></p>
+
+  <div id="final" class="mb-6 hidden rounded-xl p-4 text-sm leading-7" role="status">
+    <div class="flex items-start gap-3">
+      <span id="final-icon" class="text-2xl leading-none" aria-hidden="true"></span>
+      <p id="final-text"></p>
+    </div>
+  </div>
+
+  <div id="live" aria-live="polite">
+    <div class="mb-1 flex justify-between text-sm"><span id="stage-label" class="font-medium text-slate-800">در صف…</span><span id="progress-text" class="text-slate-600">0٪</span></div>
+    <div class="mb-6 h-2.5 w-full overflow-hidden rounded-full bg-slate-200"><div id="progress-bar" class="h-2.5 w-0 rounded-full bg-blue-600 transition-all"></div></div>
+  </div>
+
+  <p id="email-hint" class="mb-4 hidden rounded-lg bg-amber-50 p-3 text-sm leading-7 text-amber-900">پردازش فایل‌ها تمام شده است، اما ارسال ایمیل با خطا مواجه شد و چند بار دوباره تلاش می‌شود. اگر ایمیل نرسید، تنظیمات SMTP را بررسی کنید. تا آن زمان می‌توانید PDFها را از همین صفحه دریافت کنید.</p>
+
+  <dl class="mb-6 grid grid-cols-2 gap-3 text-center sm:grid-cols-4">
+    <div class="rounded-lg bg-slate-50 p-3"><dt class="text-xs text-slate-500">فایل‌های صوتی</dt><dd id="c-total" class="text-lg font-bold">–</dd></div>
+    <div class="rounded-lg bg-green-50 p-3"><dt class="text-xs text-green-700">موفق</dt><dd id="c-ok" class="text-lg font-bold text-green-800">–</dd></div>
+    <div class="rounded-lg bg-amber-50 p-3"><dt class="text-xs text-amber-700">ناقص</dt><dd id="c-partial" class="text-lg font-bold text-amber-800">–</dd></div>
+    <div class="rounded-lg bg-red-50 p-3"><dt class="text-xs text-red-700">ناموفق</dt><dd id="c-failed" class="text-lg font-bold text-red-800">–</dd></div>
+  </dl>
+
+  <a id="zip-link" href="{{ zip_url }}" class="mb-4 hidden w-full rounded-lg bg-blue-700 px-4 py-3 text-center font-semibold text-white hover:bg-blue-800">دریافت همه PDFها در یک فایل ZIP</a>
+
+  <h2 class="mb-2 text-sm font-semibold text-slate-700">فایل‌ها</h2>
+  <ul id="files" class="divide-y divide-slate-100 rounded-lg border border-slate-200"></ul>
+  <p id="poll-error" class="mt-4 hidden text-sm text-amber-700">اتصال موقتاً برقرار نیست؛ دوباره تلاش می‌شود…</p>
+</section>
+{{ messages_fa|json_script:"messages-fa" }}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/job.js' %}" defer></script>{% endblock %}

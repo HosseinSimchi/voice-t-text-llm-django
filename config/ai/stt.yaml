@@ -1,0 +1,30 @@
+# Speech-to-text configuration (independent of the LLM configuration).
+stt:
+  engine: faster_whisper
+  model: medium                # tiny | base | small | medium | large-v3 | path to a CTranslate2 model
+                               # Measured on 3 Persian clips (CPU int8): small WER 46% / CER 11.5%, medium WER 30% / CER 9%.
+                               # medium needs ~2 GB RAM and runs at roughly 2-2.5x audio duration on a 4-core laptop CPU.
+  device: cpu                  # cpu | cuda | auto
+  compute_type: int8           # int8 on CPU; float16 / int8_float16 on CUDA
+  cpu_threads: 4
+  num_workers: 1
+  download_root: null          # null = Hugging Face cache (HF_HOME); set a path to pin a location
+  language: fa                 # null enables automatic language detection
+  task: transcribe
+  beam_size: 5
+  vad_filter: true             # Silero VAD: skips silence / non-speech
+  vad_min_silence_ms: 700
+  condition_on_previous_text: false
+  initial_prompt: "این یک گفتگوی فارسی است."
+  word_timestamps: false
+  chunk_length: 30             # seconds per decoding window (long audio is processed window by window)
+
+  preprocessing:
+    ffmpeg_binary: ffmpeg      # falls back to PyAV (bundled FFmpeg) when the binary is missing
+    sample_rate: 16000
+    channels: 1
+    filters: "highpass=f=80,lowpass=f=7600,dynaudnorm=f=150:g=15"
+
+  paragraphs:
+    max_gap_seconds: 2.0       # pause that starts a new paragraph
+    max_sentences: 6

@@ -1,0 +1,15 @@
+.git
+.venv
+**/__pycache__
+**/*.pyc
+.env
+db.sqlite3
+media/*
+!media/.gitkeep
+logs/*
+staticfiles
+graphify-out/cache
+.pytest_cache
+node_modules
+tests/samples
+.env.local

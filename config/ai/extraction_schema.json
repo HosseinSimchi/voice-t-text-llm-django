@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "meeting-analysis-v1",
+  "title": "تحلیل جلسه",
+  "description": "Structured information extracted from a Persian meeting or conversation transcript. Properties marked x-grounded are verified against the transcript: values the transcript does not support are removed.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "main_topic",
+    "executive_summary",
+    "key_points",
+    "decisions",
+    "action_items",
+    "responsible_people",
+    "important_dates",
+    "deadlines",
+    "organizations_and_people",
+    "locations",
+    "important_numbers",
+    "risks_and_issues",
+    "follow_up_requirements"
+  ],
+  "properties": {
+    "main_topic": {
+      "type": "string",
+      "title": "موضوع اصلی",
+      "description": "The main topic of the conversation in one short sentence.",
+      "maxLength": 500
+    },
+    "executive_summary": {
+      "type": "string",
+      "title": "خلاصه مدیریتی",
+      "description": "A concise executive summary (3-6 sentences).",
+      "maxLength": 4000
+    },
+    "key_points": {
+      "type": "array",
+      "title": "نکات کلیدی",
+      "description": "The most important points discussed.",
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "maxItems": 30
+    },
+    "decisions": {
+      "type": "array",
+      "title": "تصمیمات",
+      "description": "Decisions that were explicitly made.",
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "maxItems": 30
+    },
+    "action_items": {
+      "type": "array",
+      "title": "اقدامات",
+      "description": "Concrete tasks to be done.",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "task"
+        ],
+        "properties": {
+          "task": {
+            "type": "string",
+            "title": "اقدام",
+            "maxLength": 1000
+          },
+          "owner": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "مسئول",
+            "maxLength": 200,
+            "x-grounded": true
+          },
+          "due": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "title": "مهلت",
+            "maxLength": 200,
+            "x-grounded": true
+          }
+        }
+      }
+    },
+    "responsible_people": {
+      "type": "array",
+      "title": "افراد مسئول",
+      "description": "People who were assigned responsibilities.",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 50,
+      "x-grounded": true
+    },
+    "important_dates": {
+      "type": "array",
+      "title": "تاریخ‌های مهم",
+      "description": "Dates mentioned, with what they refer to.",
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "maxItems": 50,
+      "x-grounded": true
+    },
+    "deadlines": {
+      "type": "array",
+      "title": "مهلت‌ها",
+      "description": "Deadlines mentioned.",
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "maxItems": 50,
+      "x-grounded": true
+    },
+    "organizations_and_people": {
+      "type": "array",
+      "title": "سازمان‌ها و افراد",
+      "description": "Named organizations and people.",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 100,
+      "x-grounded": true
+    },
+    "locations": {
+      "type": "array",
+      "title": "مکان‌ها",
+      "description": "Places mentioned.",
+      "items": {
+        "type": "string",
+        "maxLength": 200
+      },
+      "maxItems": 50,
+      "x-grounded": true
+    },
+    "important_numbers": {
+      "type": "array",
+      "title": "اعداد مهم",
+      "description": "Important figures (amounts, quantities, percentages) with their meaning.",
+      "items": {
+        "type": "string",
+        "maxLength": 500
+      },
+      "maxItems": 50,
+      "x-grounded": true
+    },
+    "risks_and_issues": {
+      "type": "array",
+      "title": "ریسک‌ها و مشکلات",
+      "description": "Risks, problems or concerns raised.",
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "maxItems": 30
+    },
+    "follow_up_requirements": {
+      "type": "array",
+      "title": "الزامات پیگیری",
+      "description": "Items that require follow-up.",
+      "items": {
+        "type": "string",
+        "maxLength": 1000
+      },
+      "maxItems": 30
+    }
+  }
+}

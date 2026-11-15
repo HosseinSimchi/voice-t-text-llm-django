@@ -1,0 +1,51 @@
+# PDF rendering configuration. The extraction section is rendered dynamically from the
+# active extraction schema + validated results: new schema fields appear automatically.
+
+document:
+  language: fa                    # fa | en  -> which label set is used
+  page_size: A4                   # A4 | LETTER
+  margins_mm: {top: 20, bottom: 20, left: 18, right: 18}
+  title: {fa: "گزارش رونویسی صوتی", en: "Audio Transcription Report"}
+  author: "Persian Audio Intelligence Platform"
+  subject: {fa: "رونوشت و اطلاعات استخراج‌شده", en: "Transcript and extracted information"}
+
+fonts:
+  regular: static/fonts/Vazirmatn-Regular.ttf   # relative paths resolve against the project root
+  bold: static/fonts/Vazirmatn-Bold.ttf
+  size: 11
+  heading_size: 15
+  title_size: 19
+  line_spacing: 1.6
+
+sections:
+  # Order of sections in the document. Remove an entry to hide the section.
+  - metadata
+  - extraction
+  - transcript
+
+metadata:
+  visible: true
+  title: {fa: "مشخصات پردازش", en: "Processing details"}
+  fields: [filename, processing_date, language, duration, stt_model, llm_model, job_id]
+  labels:
+    filename: {fa: "نام فایل صوتی", en: "Audio file"}
+    processing_date: {fa: "تاریخ پردازش", en: "Processing date"}
+    language: {fa: "زبان", en: "Language"}
+    duration: {fa: "مدت زمان", en: "Duration"}
+    stt_model: {fa: "مدل تبدیل گفتار به متن", en: "Speech-to-text model"}
+    llm_model: {fa: "مدل زبانی", en: "Language model"}
+    job_id: {fa: "شناسه کار", en: "Job ID"}
+
+extraction:
+  visible: true
+  title: {fa: "اطلاعات استخراج‌شده", en: "Extracted information"}
+  fields: "*"                     # "*" = every schema property in schema order, or an explicit ordered list
+  hide_empty: true
+  labels: {}                      # optional overrides, e.g. main_topic: {fa: "...", en: "Main topic"}
+  unavailable_text: {fa: "استخراج اطلاعات برای این فایل انجام نشد.", en: "Information extraction was not completed for this file."}
+
+transcript:
+  visible: true
+  title: {fa: "متن کامل", en: "Full transcript"}
+  show_timestamps: true
+  empty_text: {fa: "گفتاری در این فایل تشخیص داده نشد.", en: "No speech was detected in this file."}

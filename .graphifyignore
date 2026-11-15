@@ -1,0 +1,7 @@
+.venv/
+media/
+logs/
+staticfiles/
+static/fonts/
+static/css/
+**/__pycache__/
