@@ -7,6 +7,8 @@ Upload **one ZIP or RAR archive** containing several audio files and receive, by
 
 Everything runs on local hardware: speech-to-text with **Faster-Whisper**, extraction with **Ollama**. No paid cloud AI.
 
+> **Integrating with the API?** See [api_doc_guide.md](api_doc_guide.md) (Persian): endpoints, auth, errors, limits and tested Python / JavaScript / curl examples.
+
 > **New here?** Start with [GUIDE.md](GUIDE.md) (Persian): step-by-step setup from zero, locally on Windows and on a cloud server with Docker + HTTPS.
 
 > **Configuration defines *what* the AI does, *which* model does it and *what* output is expected. Python defines *how* it runs.**
