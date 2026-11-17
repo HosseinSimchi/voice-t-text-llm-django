@@ -1,0 +1,9 @@
+# Files read by Linux containers and shells must keep Unix line endings (a CRLF shebang breaks the entrypoint).
+* text=auto
+*.sh text eol=lf
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+.dockerignore text eol=lf
+.env.example text eol=lf
+requirements*.txt text eol=lf
+requirements*.in text eol=lf

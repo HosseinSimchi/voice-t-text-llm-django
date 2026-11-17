@@ -1,15 +1,15 @@
 #!/bin/sh
-# Container entrypoint: web | worker | beat | manage <args>
+# Container entrypoint: web | worker | beat | migrate | manage <args>
 set -eu
 
 case "${1:-web}" in
   web)
     python manage.py validate_config
-    python manage.py migrate --noinput
     exec gunicorn config.wsgi:application \
       --bind 0.0.0.0:8000 \
-      --workers "${GUNICORN_WORKERS:-3}" \
+      --workers "${GUNICORN_WORKERS:-2}" \
       --timeout "${GUNICORN_TIMEOUT:-300}" \
+      --worker-tmp-dir /dev/shm \
       --limit-request-line 8190 \
       --access-logfile - --error-logfile -
     ;;
@@ -22,6 +22,11 @@ case "${1:-web}" in
   beat)
     exec celery -A config beat --loglevel "${LOG_LEVEL:-INFO}" \
       --schedule /app/media/.celerybeat-schedule
+    ;;
+  migrate)
+    # One-off: apply database migrations (docker compose runs this before web/worker/beat start).
+    python manage.py validate_config
+    exec python manage.py migrate --noinput
     ;;
   manage)
     shift

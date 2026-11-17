@@ -10,6 +10,7 @@ if not SECRET_KEY or len(SECRET_KEY) < 50 or SECRET_KEY.startswith("change-me"):
     raise ImproperlyConfigured("DJANGO_SECRET_KEY must be set to a long random value in production.")
 
 SECURE_SSL_REDIRECT = env_bool("DJANGO_SECURE_SSL_REDIRECT", True)
+SECURE_REDIRECT_EXEMPT = [r"^healthz$"]  # the container health check speaks plain HTTP on the loopback
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SECURE_COOKIES", True)
 CSRF_COOKIE_SECURE = env_bool("DJANGO_SECURE_COOKIES", True)
 SECURE_HSTS_SECONDS = env_int("DJANGO_HSTS_SECONDS", 31536000)

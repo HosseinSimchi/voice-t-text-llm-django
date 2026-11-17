@@ -64,7 +64,9 @@ def env_list(name: str, default: str = "") -> list[str]:
 
 SECRET_KEY = env_str("DJANGO_SECRET_KEY", "")
 DEBUG = False
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
+# Loopback names are always allowed so container health checks (curl http://127.0.0.1:8000/healthz) work
+# whatever public domain DJANGO_ALLOWED_HOSTS lists.
+ALLOWED_HOSTS = list(dict.fromkeys(env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1") + ["localhost", "127.0.0.1"]))
 CSRF_TRUSTED_ORIGINS = env_list("DJANGO_CSRF_TRUSTED_ORIGINS", "")
 
 # Public base URL used to build absolute links in emails (e.g. https://audio.example.com).

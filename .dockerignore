@@ -1,15 +1,32 @@
+# Keep the build context small and free of secrets and local state.
 .git
+.gitattributes
+.gitignore
 .venv
+.vscode
+.claude
 **/__pycache__
 **/*.pyc
+.pytest_cache
+
+# secrets and local state
 .env
+.env.*
+!.env.example
 db.sqlite3
 media/*
 !media/.gitkeep
 logs/*
 staticfiles
-graphify-out/cache
-.pytest_cache
+control
+
+# not needed at runtime
+tests
+samples
+docs
+graphify-out
+tailwind
 node_modules
-tests/samples
-.env.local
+*.pptx
+*.zip
+CLAUDE.md

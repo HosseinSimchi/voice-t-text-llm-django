@@ -1,7 +1,16 @@
-# CPU-only by default. GPU: see docker-compose.gpu.yml and README "GPU acceleration".
+# Persian Audio Intelligence Platform: full stack, CPU-only by default.
+#
+#   cp .env.example .env      # then set DJANGO_SECRET_KEY and POSTGRES_PASSWORD (+ SMTP)
+#   docker compose up -d --build
+#
+# Start order: db + redis + ollama -> migrate (one-off) -> web / worker / beat.
+# `ollama-init` downloads the LLM into the `ollama` volume once (about 1.9 GB).
+# GPU: see docker-compose.gpu.yml.  Host Ollama instead of the container: see docs/DOCKER.md.
+#
+# CI/CD: set APP_IMAGE and APP_TAG (e.g. registry.example.com/team/audio-intelligence, 1.0.0), then
+#   docker compose build web && docker compose push web
 x-app: &app
-  build: .
-  image: audio-intelligence:latest
+  image: ${APP_IMAGE:-audio-intelligence}:${APP_TAG:-latest}
   env_file: .env
   environment:
     DJANGO_SETTINGS_MODULE: config.settings.prod
@@ -9,38 +18,51 @@ x-app: &app
     POSTGRES_HOST: db
     REDIS_URL: redis://redis:6379/0
     CACHE_REDIS_URL: redis://redis:6379/1
-    # Default: the Ollama already running on the host (saves ~2.5 GB of Docker memory).
-    # With `--profile ollama`, set DOCKER_LLM_BASE_URL=http://ollama:11434 in .env.
-    LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://host.docker.internal:11434}
+    LLM_BASE_URL: ${DOCKER_LLM_BASE_URL:-http://ollama:11434}
     MEDIA_ROOT: /app/media
     LOG_DIR: /app/logs
   extra_hosts:
-    - "host.docker.internal:host-gateway"
+    - "host.docker.internal:host-gateway"   # only needed to reach an Ollama running on the host
   volumes:
     - media:/app/media
     - logs:/app/logs
     - models:/app/models
-  depends_on:
-    db: {condition: service_healthy}
-    redis: {condition: service_healthy}
   restart: unless-stopped
   security_opt: ["no-new-privileges:true"]
   cap_drop: [ALL]
 
 services:
+  # Built once here; migrate, worker and beat reuse the same image.
   web:
     <<: *app
+    build: .
     command: ["web"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
     # Listens on localhost only: Docker would otherwise publish the port on every interface and bypass the host
-    # firewall. Put a TLS reverse proxy (see GUIDE.md) in front for public access, or set WEB_BIND=0.0.0.0.
+    # firewall. Put a TLS reverse proxy in front for public access (GUIDE.md), or set WEB_BIND=0.0.0.0.
     ports: ["${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8000}:8000"]
+
+  # One-off job: database migrations. Exits when done; the other app services wait for it.
+  migrate:
+    <<: *app
+    command: ["migrate"]
+    restart: "no"
+    healthcheck: {disable: true}
+    depends_on:
+      db: {condition: service_healthy}
 
   worker:
     <<: *app
     command: ["worker"]
     depends_on:
+      migrate: {condition: service_completed_successfully}
       db: {condition: service_healthy}
       redis: {condition: service_healthy}
+    # A warm shutdown lets the current stage finish (a stage can take several minutes) instead of being killed.
+    stop_grace_period: 10m
     healthcheck:
       test: ["CMD-SHELL", "celery -A config inspect ping -d celery@$$HOSTNAME --timeout 10 || exit 1"]
       interval: 60s
@@ -51,6 +73,10 @@ services:
   beat:
     <<: *app
     command: ["beat"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
     healthcheck:
       test: ["CMD-SHELL", "test -f /app/media/.celerybeat-schedule || exit 1"]
       interval: 60s
@@ -80,15 +106,30 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # Local LLM server. Not published to the host: only the app services reach it on the internal network.
   ollama:
-    # Optional: `docker compose --profile ollama up -d` (needs ~3 GB extra Docker memory).
-    profiles: ["ollama"]
-    image: ollama/ollama:0.12.6
+    image: ollama/ollama:${OLLAMA_TAG:-latest}
     volumes: [ollama:/root/.ollama]
     environment:
       OLLAMA_KEEP_ALIVE: 10m
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 10s
     restart: unless-stopped
-    # Not published to the host: only the worker talks to it on the internal network.
+
+  # One-off: downloads the model once. Keep LLM_MODEL equal to llm.model in config/ai/settings.yaml.
+  ollama-init:
+    image: ollama/ollama:${OLLAMA_TAG:-latest}
+    depends_on:
+      ollama: {condition: service_healthy}
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["ollama pull ${LLM_MODEL:-qwen2.5:3b}"]
+    restart: "no"
 
 volumes:
   media:
